@@ -1,0 +1,1170 @@
+# Microsoft Defender XDR – Gestion des appareils et réponse aux incidents Endpoint (MDE)
+
+**Nom du fichier :** `KNOWLEDGE_MDE_DEVICE_INVESTIGATION_RESPONSE.md`  
+**Domaine :** Microsoft Defender XDR / Microsoft Defender for Endpoint  
+**Public cible :** SOC L1/L2/L3, Endpoint Security, Incident Response, Architectes Microsoft Security  
+**Type de document :** Documentation technique – Compréhension fonctionnelle, investigation et procédures BUILD/RUN  
+**Version :** 1.1
+
+---
+
+## 1. Objectifs de la session
+
+Dans le portail Microsoft Defender XDR, la section **Device Inventory** permet aux équipes SOC et Endpoint Security de consulter les appareils intégrés à Microsoft Defender for Endpoint (MDE), d'examiner leurs alertes et activités, puis de déclencher des actions de protection ou d'investigation.
+
+L'objectif est de maîtriser le cycle complet de réponse sur un endpoint :
+
+1. Identifier l'appareil et son niveau de risque.
+2. Analyser ses alertes et sa chronologie d'activité.
+3. Qualifier l'incident et son impact.
+4. Contenir la menace si nécessaire.
+5. Investiguer et remédier.
+6. Vérifier le retour à un état sécurisé.
+
+**Point d'attention :** les options disponibles et leur emplacement peuvent varier selon les licences, le système d'exploitation, l'état de l'appareil, les permissions RBAC et les évolutions du portail Defender. Les actions présentées dans ce document doivent être validées dans le tenant cible avant leur intégration dans une procédure de production.
+
+### 1.1 Périmètre fonctionnel
+
+| Composant | Objectif |
+|---|---|
+| Device Inventory | Identifier et consulter les appareils |
+| Device details | Examiner les caractéristiques et l'état de l'appareil |
+| Incidents and alerts | Analyser les alertes et les incidents associés |
+| Timeline | Reconstituer les événements survenus sur l'endpoint |
+| Response actions | Contenir et investiguer une menace |
+| Action Center | Suivre l'exécution des actions de réponse |
+| Advanced Hunting | Réaliser des investigations avancées avec KQL |
+
+### 1.2 Démarche opérationnelle
+
+```text
+IDENTIFIER
+   |
+   v
+ANALYSER LES ALERTES
+   |
+   v
+EXAMINER LA TIMELINE
+   |
+   v
+QUALIFIER L'INCIDENT
+   |
+   v
+CONTENIR LA MENACE
+   |
+   v
+INVESTIGUER ET REMÉDIER
+   |
+   v
+VALIDER LE RETOUR À UN ÉTAT SÉCURISÉ
+   |
+   v
+DOCUMENTATION ET RETOUR D'EXPÉRIENCE
+```
+
+---
+
+## 2. Accéder à l'appareil et comprendre ses informations
+
+### 2.1 Accéder au Device Inventory
+
+Dans le portail Microsoft Defender :
+
+1. Ouvrir `https://security.microsoft.com`.
+2. Accéder à **Assets**.
+3. Sélectionner **Devices**.
+4. Rechercher le poste par son nom.
+5. Ouvrir sa fiche pour consulter ses informations.
+
+Selon la version du portail, certains menus peuvent être présentés sous des intitulés différents.
+
+### 2.2 Informations importantes de la fiche appareil
+
+| Information | Description | Utilisation SOC |
+|---|---|---|
+| Device name | Nom de l'appareil | Identifier l'endpoint |
+| Device ID | Identifiant unique MDE | Corréler les événements |
+| OS platform | Système d'exploitation | Vérifier la compatibilité |
+| OS version | Version du système | Identifier un système obsolète |
+| Health state | État de santé du capteur | Détecter une télémétrie dégradée |
+| Onboarding status | État d'intégration MDE | Vérifier la couverture EDR |
+| Risk level | Niveau de risque de l'appareil | Prioriser l'investigation |
+| Exposure level | Niveau d'exposition | Évaluer la posture de sécurité |
+| Device value | Valeur métier de l'actif | Adapter la priorité de traitement |
+| Tags | Étiquettes de classification | Faciliter le filtrage et la gouvernance |
+| Last seen | Dernière activité connue | Vérifier la fraîcheur de la télémétrie |
+| Machine group | Groupe de l'appareil | Contrôler le périmètre RBAC |
+
+### 2.3 Comprendre le niveau de risque
+
+Le niveau de risque permet de prioriser les appareils nécessitant une investigation.
+
+Exemple de lecture :
+
+- **High :** appareil présentant un niveau de risque élevé, à examiner rapidement.
+- **Medium :** appareil présentant des signaux de risque nécessitant une analyse.
+- **Low :** risque plus faible selon les éléments connus du service.
+
+Le niveau de risque ne doit pas être interprété isolément. Il faut également examiner les alertes, les preuves, la criticité métier et l'exposition de l'appareil.
+
+### 2.4 Exemple KQL – Inventaire des appareils
+
+Objectif : obtenir la dernière information connue pour chaque appareil.
+
+```kusto
+DeviceInfo
+| where Timestamp >= ago(7d)
+| where isnotempty(DeviceName)
+| summarize arg_max(Timestamp, *) by DeviceId
+| project
+    DeviceName,
+    DeviceId,
+    OSPlatform,
+    OSVersion,
+    OSBuild,
+    ClientVersion,
+    OnboardingStatus,
+    MachineGroup,
+    Timestamp
+| order by DeviceName asc
+```
+
+**Interprétation :**
+
+- `DeviceInfo` contient les informations relatives aux appareils.
+- `arg_max(Timestamp, *)` conserve l'enregistrement le plus récent pour chaque appareil.
+- `OnboardingStatus` permet de contrôler l'état d'intégration.
+- `MachineGroup` apporte une information utile pour l'analyse du périmètre RBAC.
+
+**Cas d'utilisation :** contrôler la couverture MDE et identifier les appareils dont l'intégration doit être vérifiée.
+
+### 2.5 Exemple KQL – Appareils non onboardés
+
+```kusto
+DeviceInfo
+| summarize arg_max(Timestamp, *) by DeviceId
+| where OnboardingStatus != "Onboarded"
+| project
+    DeviceName,
+    OSPlatform,
+    OSVersion,
+    OnboardingStatus,
+    Timestamp
+| order by Timestamp desc
+```
+
+**Résultat attendu :** liste des appareils dont le dernier état remonté n'est pas `Onboarded`.
+
+**Attention :** un résultat vide ne prouve pas que tous les appareils de l'entreprise sont onboardés. Il faut comparer l'inventaire MDE avec la CMDB ou l'outil de gestion du parc.
+
+---
+
+## 3. Activité et alertes – Analyser les événements
+
+### 3.1 A. Incidents and alerts
+
+Les alertes représentent des détections de sécurité. Un incident peut regrouper plusieurs alertes et éléments associés à une même activité malveillante.
+
+L'analyste doit examiner :
+
+- Le titre de l'alerte.
+- Sa sévérité.
+- La source de détection.
+- Les techniques MITRE ATT&CK associées.
+- Les utilisateurs concernés.
+- Les appareils concernés.
+- Les fichiers, processus, adresses IP et URL associés.
+- Les preuves disponibles.
+
+### 3.2 Exemple KQL – Alertes récentes
+
+Objectif : afficher les alertes récentes provenant des services Microsoft Defender.
+
+```kusto
+AlertInfo
+| where Timestamp >= ago(7d)
+| project
+    Timestamp,
+    AlertId,
+    Title,
+    Category,
+    Severity,
+    ServiceSource,
+    DetectionSource,
+    AttackTechniques
+| order by Timestamp desc
+```
+
+**Cas d'utilisation :** obtenir une vue des alertes récentes et identifier celles qui nécessitent une investigation.
+
+### 3.3 Exemple KQL – Alertes de sévérité élevée
+
+```kusto
+AlertInfo
+| where Timestamp >= ago(7d)
+| where Severity == "High"
+| project
+    Timestamp,
+    AlertId,
+    Title,
+    Category,
+    ServiceSource,
+    DetectionSource,
+    AttackTechniques
+| order by Timestamp desc
+```
+
+**Interprétation :** cette requête filtre les alertes classées `High`. Elle ne constitue pas à elle seule une qualification d'incident.
+
+### 3.4 Exemple KQL – Associer les alertes à leurs preuves
+
+La table `AlertInfo` contient les métadonnées des alertes. `AlertEvidence` permet d'examiner les entités associées : appareils, fichiers, processus, utilisateurs, adresses IP ou URL.
+
+```kusto
+AlertInfo
+| where Timestamp >= ago(7d)
+| join kind=inner (
+    AlertEvidence
+    | project
+        AlertId,
+        EntityType,
+        EvidenceRole,
+        EvidenceDirection,
+        DeviceName,
+        FileName,
+        SHA1,
+        RemoteIP,
+        RemoteUrl,
+        AccountName
+) on AlertId
+| project
+    Timestamp,
+    Title,
+    Severity,
+    ServiceSource,
+    DetectionSource,
+    DeviceName,
+    EntityType,
+    EvidenceRole,
+    FileName,
+    SHA1,
+    RemoteIP,
+    RemoteUrl,
+    AccountName
+| order by Timestamp desc
+```
+
+**Objectif :** comprendre quelles entités sont associées à une alerte et quel rôle elles jouent dans la détection.
+
+**À retenir :** toutes les colonnes d'une preuve ne sont pas nécessairement renseignées. Les champs disponibles dépendent du type d'entité et de l'événement.
+
+---
+
+### 3.5 B. Timeline – Chronologie de l'appareil
+
+La Timeline permet de reconstituer les activités observées sur un appareil pendant une période donnée.
+
+Elle peut aider à identifier :
+
+- L'exécution d'un processus suspect.
+- La création ou la modification d'un fichier.
+- Une connexion réseau inhabituelle.
+- Une activité liée à l'antivirus.
+- Des événements de sécurité.
+- Des activités de connexion.
+
+La Timeline de la fiche appareil est une vue graphique. Advanced Hunting permet de compléter cette analyse avec des requêtes ciblées.
+
+### 3.6 Exemple KQL – Activités des processus
+
+Objectif : examiner les processus exécutés sur un endpoint.
+
+```kusto
+DeviceProcessEvents
+| where Timestamp >= ago(24h)
+| where DeviceName =~ "PC-COMPTA-001"
+| project
+    Timestamp,
+    DeviceName,
+    AccountName,
+    FileName,
+    FolderPath,
+    ProcessCommandLine,
+    ProcessId,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    SHA1
+| order by Timestamp desc
+```
+
+Remplacer `PC-COMPTA-001` par le nom réel de l'appareil.
+
+**Analyse SOC :**
+
+- Identifier le processus exécuté.
+- Examiner son chemin d'accès.
+- Vérifier la ligne de commande.
+- Identifier le processus parent.
+- Identifier le compte utilisateur à l'origine de l'exécution.
+- Vérifier le hash du fichier lorsqu'il est disponible.
+
+### 3.7 Exemple KQL – Recherche de commandes PowerShell suspectes
+
+```kusto
+DeviceProcessEvents
+| where Timestamp >= ago(24h)
+| where DeviceName =~ "PC-COMPTA-001"
+| where FileName in~ ("powershell.exe", "pwsh.exe")
+| where ProcessCommandLine has_any (
+    "-enc",
+    "-encodedcommand",
+    "FromBase64String",
+    "DownloadString",
+    "Invoke-WebRequest",
+    "IEX"
+)
+| project
+    Timestamp,
+    DeviceName,
+    AccountName,
+    FileName,
+    ProcessCommandLine,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    SHA1
+| order by Timestamp desc
+```
+
+**Objectif :** rechercher des lignes de commande pouvant être associées à une exécution PowerShell suspecte.
+
+**Important :** ces termes peuvent également apparaître dans des scripts d'administration légitimes. Il faut vérifier le contexte, le compte, le processus parent, la signature et l'activité réseau.
+
+### 3.8 Exemple KQL – Connexions réseau de l'appareil
+
+```kusto
+DeviceNetworkEvents
+| where Timestamp >= ago(24h)
+| where DeviceName =~ "PC-COMPTA-001"
+| project
+    Timestamp,
+    DeviceName,
+    InitiatingProcessAccountName,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    RemoteIP,
+    RemotePort,
+    RemoteUrl,
+    Protocol,
+    ActionType
+| order by Timestamp desc
+```
+
+**Objectif :** examiner les connexions réseau initiées par les processus de l'appareil.
+
+**Analyse SOC :**
+
+- Identifier le processus à l'origine de la connexion.
+- Examiner l'adresse IP distante.
+- Examiner le domaine ou l'URL.
+- Identifier les ports et protocoles utilisés.
+- Corréler avec les alertes et les processus exécutés.
+
+Une connexion réseau inhabituelle ne constitue pas automatiquement une compromission. Il faut examiner sa destination, son contexte et le processus initiateur.
+
+### 3.9 Exemple KQL – Événements liés aux fichiers
+
+```kusto
+DeviceFileEvents
+| where Timestamp >= ago(24h)
+| where DeviceName =~ "PC-COMPTA-001"
+| project
+    Timestamp,
+    DeviceName,
+    ActionType,
+    FileName,
+    FolderPath,
+    SHA1,
+    FileOriginUrl,
+    FileOriginIP,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    InitiatingProcessAccountName
+| order by Timestamp desc
+```
+
+**Objectif :** identifier les fichiers créés ou modifiés et rechercher leur origine.
+
+### 3.10 Exemple KQL – Événements de sécurité Defender
+
+La table `DeviceEvents` contient différents types d'événements, notamment ceux liés aux contrôles de sécurité Microsoft Defender Antivirus.
+
+```kusto
+DeviceEvents
+| where Timestamp >= ago(7d)
+| where DeviceName =~ "PC-COMPTA-001"
+| where ActionType contains "Antivirus"
+| project
+    Timestamp,
+    DeviceName,
+    ActionType,
+    FileName,
+    FolderPath,
+    SHA1,
+    AdditionalFields
+| order by Timestamp desc
+```
+
+**Objectif :** rechercher les événements dont le type d'action contient le terme `Antivirus`.
+
+Pour identifier les valeurs d'événements réellement présentes dans le tenant :
+
+```kusto
+DeviceEvents
+| where Timestamp >= ago(7d)
+| where ActionType contains "Antivirus"
+| summarize EventCount = count() by ActionType
+| order by EventCount desc
+```
+
+Cette deuxième requête permet d'identifier les valeurs `ActionType` remontées dans l'environnement.
+
+---
+
+## 4. Toutes les actions disponibles sur un appareil
+
+Les actions sont regroupées par objectif pour faciliter leur compréhension en situation SOC.
+
+### 4.1 A. Classification et gestion de l'actif
+
+| Action | Objectif | Utilisation |
+|---|---|---|
+| View in map | Visualiser la relation ou le contexte de l'appareil selon la vue proposée | Comprendre son environnement |
+| Device value | Définir la valeur métier de l'appareil | Prioriser les actifs importants |
+| Set criticality | Définir ou modifier la criticité | Identifier les actifs critiques |
+| Manage tags | Ajouter ou modifier des étiquettes | Organiser les appareils |
+| Report device inaccuracy | Signaler une information incorrecte | Améliorer la qualité de l'inventaire |
+
+**Exemple :**
+
+Un serveur hébergeant une application financière peut être identifié comme actif critique. Son traitement doit prendre en compte les conséquences métier d'une isolation ou d'une restriction d'exécution.
+
+Les tags doivent suivre une convention de nommage définie par l'organisation, par exemple :
+
+- `CRITICAL-ASSET`
+- `FINANCE`
+- `PRODUCTION`
+- `PILOT`
+- `HIGH-PRIORITY`
+
+Ces exemples constituent une convention possible, pas des tags obligatoires du produit.
+
+### 4.2 B. Investigation et collecte de preuves
+
+| Action | Fonctionnement | Cas d'utilisation |
+|---|---|---|
+| Run Antivirus | Déclencher une analyse antivirus | Rechercher des fichiers malveillants |
+| Collect Investigation Package | Collecter des informations techniques sur l'appareil | Préparer une investigation approfondie |
+| Initiate Automated Investigation | Déclencher une investigation automatisée | Analyser les éléments associés à une menace |
+| Initiate Live Response Session | Ouvrir une session distante d'investigation | Réaliser des contrôles avancés |
+| Go hunt | Accéder à Advanced Hunting | Rechercher des événements avec KQL |
+| Ask Defender Experts | Solliciter une expertise Microsoft selon le service souscrit | Obtenir une assistance spécialisée |
+
+#### Run Antivirus
+
+Permet de lancer une analyse antivirus sur un appareil.
+
+Selon les options proposées, une analyse rapide ou complète peut être disponible.
+
+**Cas d'utilisation :** après la détection d'un fichier suspect, lancer une analyse afin de rechercher d'autres éléments malveillants.
+
+#### Collect Investigation Package
+
+Permet de collecter un ensemble d'informations techniques sur l'appareil.
+
+Le package peut notamment aider à examiner :
+
+- Les mécanismes de démarrage automatique.
+- Les services.
+- Les processus.
+- Les informations système.
+- Les éléments utiles à l'analyse de persistance.
+
+Le contenu exact dépend du système d'exploitation et de la version du package.
+
+**Bonne pratique :** documenter le motif de collecte et protéger le package comme une preuve d'investigation.
+
+#### Initiate Automated Investigation
+
+Déclenche une investigation automatisée lorsque l'appareil et le scénario sont éligibles.
+
+L'objectif est d'analyser les éléments associés à une menace et de proposer ou d'exécuter des actions de remédiation selon la configuration du service.
+
+L'analyste doit examiner les résultats et les actions proposées avant de conclure.
+
+#### Initiate Live Response Session
+
+Permet d'ouvrir une session distante sur l'appareil pour réaliser des investigations et certaines actions correctives.
+
+Exemples de commandes Live Response, selon les permissions et le système d'exploitation :
+
+| Commande | Objectif |
+|---|---|
+| `processes` | Afficher les processus |
+| `services` | Examiner les services |
+| `scheduledtasks` | Examiner les tâches planifiées |
+| `registry` | Examiner des clés et valeurs de registre |
+| `fileinfo` | Obtenir des informations sur un fichier |
+| `getfile` | Récupérer un fichier |
+| `analyze` | Analyser une entité lorsque la commande est prise en charge |
+
+**Attention :** certaines commandes sont avancées et nécessitent des autorisations spécifiques. Les commandes disponibles varient selon l'OS et la configuration Live Response.
+
+### 4.3 C. Containment – Contenir la menace
+
+| Action | Objectif | Impact |
+|---|---|---|
+| Restrict App Execution | Restreindre l'exécution d'applications | Limiter l'exécution de programmes sur l'appareil |
+| Isolate Device | Isoler l'appareil du réseau | Limiter la propagation de la menace |
+| Download force release from isolation | Récupérer le script de sortie forcée de l'isolation lorsque proposé | Prévoir une procédure de récupération |
+| Release from isolation | Réintégrer l'appareil dans le réseau | Restaurer la connectivité après validation |
+
+#### Isolate Device
+
+L'isolation permet de limiter les communications réseau de l'appareil compromis tout en conservant la connectivité nécessaire au service Defender.
+
+**Exemple de situation :**
+
+Un poste exécute un ransomware et tente de communiquer avec une infrastructure externe.
+
+Actions possibles :
+
+1. Confirmer l'identité de l'appareil.
+2. Examiner les alertes et les preuves.
+3. Évaluer le risque de propagation.
+4. Isoler l'appareil si la situation le justifie.
+5. Vérifier le statut de l'action dans Action Center.
+6. Continuer l'investigation.
+7. Ne libérer l'appareil qu'après validation de sa sécurité.
+
+**Attention :** l'isolation peut interrompre des activités métier. Pour les serveurs critiques et les actifs à haute valeur, appliquer une procédure d'approbation et vérifier les restrictions d'actions configurées.
+
+#### Restrict App Execution
+
+Cette action permet de limiter l'exécution d'applications sur un appareil éligible.
+
+Elle doit être utilisée dans un scénario de réponse maîtrisé, car elle peut avoir un impact sur l'activité de l'utilisateur ou du service.
+
+### 4.4 D. Exclusions et assistance
+
+| Action | Objectif | Point de vigilance |
+|---|---|---|
+| Exclude | Exclure un élément ou un périmètre selon le contexte de l'action affichée | Identifier précisément le type d'exclusion |
+| Ask Defender Experts | Demander une expertise selon le service souscrit | Vérifier l'éligibilité du tenant |
+| Turn on troubleshooting mode | Activer un mode temporaire de dépannage sur les appareils éligibles | Contrôler la durée et les paramètres modifiables |
+
+**Attention concernant Exclude :** ne pas assimiler automatiquement cette action à une exclusion antivirus. Vérifier le libellé complet, le contexte de la page et l'objet concerné avant toute validation. Une exclusion mal définie peut réduire la capacité de détection.
+
+#### Turn on troubleshooting mode
+
+Le mode de dépannage permet, dans les scénarios pris en charge, de diagnostiquer certains problèmes liés à Microsoft Defender Antivirus et à ses paramètres.
+
+Avant son activation :
+
+1. Identifier le problème rencontré.
+2. Vérifier les politiques de sécurité appliquées.
+3. Identifier les paramètres qui doivent être diagnostiqués.
+4. Activer le mode pour une durée limitée.
+5. Effectuer les tests nécessaires.
+6. Désactiver ou laisser expirer le mode selon le fonctionnement documenté.
+7. Vérifier que les paramètres de sécurité attendus sont rétablis.
+
+Ce mode ne doit pas être utilisé comme mécanisme permanent de contournement des protections.
+
+---
+
+## 5. Action Center – Suivre les actions de sécurité
+
+### 5.1 Objectif
+
+L'Action Center permet de suivre les actions de réponse exécutées sur les appareils.
+
+Il constitue un élément important de la traçabilité opérationnelle.
+
+### 5.2 Actions à suivre
+
+Exemples :
+
+- Isolation d'un appareil.
+- Analyse antivirus.
+- Collecte d'un package d'investigation.
+- Investigation automatisée.
+- Restriction de l'exécution d'applications.
+- Actions de remédiation disponibles dans le tenant.
+
+### 5.3 Informations à contrôler
+
+| Information | Contrôle |
+|---|---|
+| Action | Identifier l'opération exécutée |
+| Device | Vérifier l'appareil concerné |
+| Initiator | Identifier l'origine de l'action lorsque disponible |
+| Status | Vérifier l'état de l'exécution |
+| Timestamp | Identifier la date et l'heure |
+| Details | Examiner les informations complémentaires |
+| Result | Vérifier le résultat de l'action |
+
+Les statuts et les détails affichés dépendent de l'action et de son état d'exécution.
+
+### 5.4 Procédure RUN
+
+1. Ouvrir la fiche de l'appareil.
+2. Déclencher l'action de réponse appropriée.
+3. Ajouter un commentaire lorsque cela est demandé.
+4. Accéder à Action Center.
+5. Identifier l'action correspondante.
+6. Contrôler son état.
+7. En cas d'échec, examiner les détails et les prérequis.
+8. Documenter le résultat dans le ticket d'incident.
+
+**Point important :** le fait de déclencher une action ne signifie pas qu'elle a réussi. La confirmation doit être réalisée à partir de son statut et des éléments de preuve disponibles.
+
+---
+
+## 6. Licences, permissions et limitations
+
+### 6.1 Licences
+
+Les capacités disponibles dépendent notamment de l'abonnement Defender for Endpoint.
+
+| Fonctionnalité | Point de contrôle |
+|---|---|
+| Device Inventory | Vérifier l'intégration MDE et les droits d'accès |
+| Advanced Hunting | Vérifier les droits et la disponibilité des données |
+| Run Antivirus | Vérifier la prise en charge de l'action |
+| Isolate Device | Vérifier la licence, l'OS et les permissions |
+| Collect Investigation Package | Vérifier l'éligibilité de l'appareil |
+| Automated Investigation | Vérifier les capacités du plan souscrit |
+| Live Response | Vérifier le plan et les permissions spécifiques |
+| Restrict App Execution | Vérifier les conditions de disponibilité |
+| Defender Vulnerability Management | Vérifier les capacités incluses ou additionnelles |
+
+Microsoft Defender for Endpoint Plan 1 ne dispose pas de toutes les actions manuelles de réponse proposées par Plan 2. Il faut vérifier la matrice de fonctionnalités correspondant à l'abonnement réellement utilisé.
+
+### 6.2 RBAC – Role-Based Access Control
+
+Le RBAC détermine les opérations qu'un analyste peut effectuer et les appareils auxquels il peut accéder.
+
+Les éléments à contrôler sont :
+
+- Les rôles Microsoft Defender.
+- Les permissions d'investigation.
+- Les permissions de réponse.
+- Les groupes d'appareils.
+- Les périmètres d'accès.
+- Les éventuelles restrictions sur les actifs critiques.
+
+**Exemple :**
+
+| Profil | Responsabilités |
+|---|---|
+| SOC L1 | Consulter les alertes et qualifier les événements |
+| SOC L2 | Réaliser des investigations avancées |
+| SOC L3 / Incident Response | Piloter les investigations complexes et les actions de réponse autorisées |
+| Endpoint Security | Administrer les politiques et la protection des endpoints |
+| Security Administrator | Administrer les paramètres de sécurité selon le périmètre autorisé |
+
+Ces profils sont des exemples d'organisation. Ils doivent être associés aux rôles et permissions réellement disponibles dans le tenant.
+
+### 6.3 Points de vigilance
+
+- Une action peut être indisponible selon l'OS.
+- Une action peut être bloquée par les permissions RBAC.
+- Un appareil critique peut faire l'objet de restrictions de réponse.
+- Une session Live Response peut nécessiter des permissions avancées.
+- Un appareil hors ligne peut ne pas exécuter immédiatement une action.
+- Les données Advanced Hunting dépendent de la télémétrie disponible.
+- Les tables de Vulnerability Management ne sont pas toutes disponibles dans tous les contextes de recherche.
+
+---
+
+## 7. Scénario pratique BUILD / RUN : un poste compromis
+
+### 7.1 Contexte
+
+Un utilisateur signale un comportement inhabituel sur son poste.
+
+Le SOC reçoit une alerte Microsoft Defender XDR indiquant une activité suspecte liée à l'exécution d'un processus et à une communication réseau inhabituelle.
+
+**Appareil fictif :** `PC-COMPTA-001`  
+**Utilisateur fictif :** `user.compta@contoso.com`  
+**Menace supposée :** exécution d'un programme malveillant.
+
+### 7.2 Étape 1 – Identifier l'appareil
+
+Dans Device Inventory :
+
+1. Rechercher `PC-COMPTA-001`.
+2. Vérifier son état d'intégration.
+3. Contrôler son OS et sa version.
+4. Examiner son niveau de risque.
+5. Vérifier sa criticité métier.
+6. Identifier les alertes associées.
+
+### 7.3 Étape 2 – Examiner les alertes
+
+Dans Incidents and alerts :
+
+- Examiner le titre et la sévérité.
+- Identifier la source de détection.
+- Consulter les entités associées.
+- Examiner les techniques MITRE ATT&CK.
+- Identifier les autres appareils ou utilisateurs associés.
+
+### 7.4 Étape 3 – Reconstituer la chronologie
+
+Exécuter les requêtes KQL suivantes dans Advanced Hunting.
+
+**A. Identifier les processus suspects**
+
+```kusto
+DeviceProcessEvents
+| where Timestamp >= ago(24h)
+| where DeviceName =~ "PC-COMPTA-001"
+| project
+    Timestamp,
+    AccountName,
+    FileName,
+    FolderPath,
+    ProcessCommandLine,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    SHA1
+| order by Timestamp asc
+```
+
+**B. Examiner les connexions réseau**
+
+```kusto
+DeviceNetworkEvents
+| where Timestamp >= ago(24h)
+| where DeviceName =~ "PC-COMPTA-001"
+| project
+    Timestamp,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    RemoteIP,
+    RemoteUrl,
+    RemotePort,
+    Protocol,
+    ActionType
+| order by Timestamp asc
+```
+
+**C. Identifier les fichiers associés**
+
+```kusto
+DeviceFileEvents
+| where Timestamp >= ago(24h)
+| where DeviceName =~ "PC-COMPTA-001"
+| project
+    Timestamp,
+    ActionType,
+    FileName,
+    FolderPath,
+    SHA1,
+    FileOriginUrl,
+    FileOriginIP,
+    InitiatingProcessFileName
+| order by Timestamp asc
+```
+
+### 7.5 Étape 4 – Qualifier l'incident
+
+L'analyste doit répondre aux questions suivantes :
+
+| Question | Objectif |
+|---|---|
+| Quel processus est suspect ? | Identifier l'origine de l'activité |
+| Quel utilisateur est concerné ? | Évaluer l'impact sur l'identité |
+| Quel fichier a été exécuté ? | Identifier le binaire suspect |
+| Quelle est son origine ? | Comprendre le vecteur d'entrée |
+| Quelles connexions ont été établies ? | Rechercher une communication externe |
+| D'autres appareils sont-ils concernés ? | Déterminer l'étendue de l'incident |
+| L'appareil est-il critique ? | Adapter la stratégie de réponse |
+
+### 7.6 Étape 5 – Contenir la menace
+
+Si l'investigation confirme une menace nécessitant un confinement :
+
+1. Isoler l'appareil.
+2. Vérifier le statut de l'isolation dans Action Center.
+3. Préserver les éléments de preuve.
+4. Collecter un Investigation Package si nécessaire.
+5. Déclencher une investigation automatisée si disponible.
+6. Ouvrir une session Live Response si nécessaire et autorisée.
+
+**Attention :** avant l'isolation d'un serveur ou d'un actif critique, évaluer les dépendances applicatives et les impacts métier.
+
+### 7.7 Étape 6 – Remédier
+
+Selon les résultats de l'investigation :
+
+- Supprimer ou mettre en quarantaine les éléments malveillants.
+- Corriger la vulnérabilité exploitée.
+- Réinitialiser les identifiants compromis si nécessaire.
+- Examiner les mécanismes de persistance.
+- Corriger les configurations faibles.
+- Rechercher les indicateurs de compromission sur les autres appareils.
+
+### 7.8 Étape 7 – Vérifier le retour à un état sécurisé
+
+Avant de retirer l'isolation :
+
+- Confirmer la disparition des éléments malveillants.
+- Vérifier les alertes récentes.
+- Vérifier les processus et connexions inhabituels.
+- Contrôler l'état de santé du capteur MDE.
+- Vérifier les mises à jour et la protection antivirus.
+- Confirmer la correction de la vulnérabilité ou l'application d'une mesure compensatoire.
+- Faire valider le retour en production selon la procédure de l'organisation.
+
+La réapparition d'une télémétrie normale ne suffit pas à démontrer que l'appareil est sain. La décision doit s'appuyer sur les preuves de remédiation et les contrôles de sécurité.
+
+---
+
+## 8. Bibliothèque KQL – Requêtes complémentaires
+
+Cette section regroupe des requêtes réutilisables pour les opérations quotidiennes du SOC.
+
+### 8.1 Rechercher les appareils avec des vulnérabilités critiques
+
+Table : `DeviceTvmSoftwareVulnerabilities`
+
+```kusto
+DeviceTvmSoftwareVulnerabilities
+| where VulnerabilitySeverityLevel =~ "Critical"
+| project
+    DeviceName,
+    OSPlatform,
+    SoftwareVendor,
+    SoftwareName,
+    SoftwareVersion,
+    CveId,
+    VulnerabilitySeverityLevel,
+    RecommendedSecurityUpdate
+| order by DeviceName asc
+```
+
+**Objectif :** identifier les appareils concernés par des vulnérabilités classées critiques.
+
+### 8.2 Rechercher les vulnérabilités d'un appareil
+
+```kusto
+DeviceTvmSoftwareVulnerabilities
+| where DeviceName =~ "PC-COMPTA-001"
+| project
+    DeviceName,
+    SoftwareName,
+    SoftwareVersion,
+    CveId,
+    VulnerabilitySeverityLevel,
+    RecommendedSecurityUpdate,
+    RecommendedSecurityUpdateId
+| order by VulnerabilitySeverityLevel desc
+```
+
+**Objectif :** identifier les vulnérabilités logicielles d'un endpoint et les mises à jour recommandées.
+
+### 8.3 Identifier les configurations de sécurité non conformes
+
+Table : `DeviceTvmSecureConfigurationAssessment`
+
+```kusto
+DeviceTvmSecureConfigurationAssessment
+| where IsApplicable == true
+| where IsCompliant == false
+| join kind=leftouter (
+    DeviceTvmSecureConfigurationAssessmentKB
+    | project
+        ConfigurationId,
+        ConfigurationName,
+        ConfigurationDescription,
+        RiskDescription,
+        ConfigurationImpact
+) on ConfigurationId
+| project
+    DeviceName,
+    OSPlatform,
+    ConfigurationName,
+    ConfigurationDescription,
+    RiskDescription,
+    ConfigurationImpact,
+    IsApplicable,
+    IsCompliant
+| order by DeviceName asc
+```
+
+**Objectif :** identifier les configurations de sécurité applicables mais non conformes et obtenir leur description.
+
+**Attention :** la table `DeviceTvmSecureConfigurationAssessmentKB` apporte les informations de référence. Elle ne représente pas les résultats d'évaluation des appareils.
+
+### 8.4 Identifier les appareils sans activité récente
+
+```kusto
+DeviceInfo
+| summarize LastSeen = max(Timestamp) by DeviceId, DeviceName
+| where LastSeen < ago(7d)
+| project
+    DeviceName,
+    DeviceId,
+    LastSeen
+| order by LastSeen asc
+```
+
+**Objectif :** détecter les appareils qui n'ont pas remonté d'informations récentes dans la fenêtre étudiée.
+
+**Limite :** cette requête ne permet pas de conclure seule à un dysfonctionnement du capteur. Il faut vérifier l'état de l'appareil, sa connectivité et les autres sources d'inventaire.
+
+### 8.5 Identifier les comptes utilisés pour exécuter des processus
+
+```kusto
+DeviceProcessEvents
+| where Timestamp >= ago(7d)
+| where DeviceName =~ "PC-COMPTA-001"
+| summarize
+    ProcessCount = count(),
+    ProcessNames = make_set(FileName, 20)
+    by AccountName
+| order by ProcessCount desc
+```
+
+**Objectif :** identifier les comptes associés à l'exécution de processus sur l'appareil.
+
+### 8.6 Rechercher une activité réseau vers une adresse IP
+
+```kusto
+DeviceNetworkEvents
+| where Timestamp >= ago(7d)
+| where RemoteIP == "203.0.113.10"
+| project
+    Timestamp,
+    DeviceName,
+    InitiatingProcessAccountName,
+    InitiatingProcessFileName,
+    RemoteIP,
+    RemotePort,
+    RemoteUrl,
+    Protocol,
+    ActionType
+| order by Timestamp desc
+```
+
+`203.0.113.10` est une adresse réservée à la documentation. La remplacer par l'indicateur étudié.
+
+**Objectif :** identifier les appareils ayant communiqué avec une adresse IP donnée.
+
+### 8.7 Conseils d'optimisation KQL
+
+| Bonne pratique | Pourquoi ? |
+|---|---|
+| Filtrer tôt avec `where Timestamp >= ago(...)` | Réduire le volume de données |
+| Filtrer par `DeviceName` ou `DeviceId` | Cibler l'appareil |
+| Utiliser `project` | Limiter les colonnes affichées |
+| Utiliser `summarize` | Agréger les événements |
+| Utiliser `arg_max()` | Conserver le dernier état connu |
+| Utiliser `join` | Corréler plusieurs sources |
+| Contrôler les valeurs `ActionType` | Éviter les hypothèses sur les événements |
+| Vérifier le schéma dans le portail | Confirmer les colonnes et leur disponibilité |
+
+---
+
+## 9. Documentation Microsoft officielle
+
+Les références ci-dessous constituent les sources principales pour approfondir le fonctionnement des appareils, les actions de réponse et Advanced Hunting.
+
+| Sujet | Documentation |
+|---|---|
+| Investigation des appareils | [Investigate devices in Microsoft Defender for Endpoint](https://learn.microsoft.com/defender-endpoint/investigate-machines) |
+| Actions de réponse | [Take response actions on a device](https://learn.microsoft.com/defender-endpoint/respond-machine-alerts) |
+| Live Response | [Investigate entities on devices using Live Response](https://learn.microsoft.com/defender-endpoint/live-response) |
+| Advanced Hunting | [Hunt for threats with Advanced Hunting](https://learn.microsoft.com/defender-xdr/advanced-hunting-overview) |
+| Schéma Advanced Hunting | [Advanced Hunting schema tables](https://learn.microsoft.com/defender-xdr/advanced-hunting-schema-tables) |
+| DeviceInfo | [DeviceInfo table](https://learn.microsoft.com/defender-xdr/advanced-hunting-deviceinfo-table) |
+| DeviceProcessEvents | [DeviceProcessEvents table](https://learn.microsoft.com/defender-xdr/advanced-hunting-deviceprocessevents-table) |
+| DeviceNetworkEvents | [DeviceNetworkEvents table](https://learn.microsoft.com/defender-xdr/advanced-hunting-devicenetworkevents-table) |
+| DeviceFileEvents | [DeviceFileEvents table](https://learn.microsoft.com/defender-xdr/advanced-hunting-devicefileevents-table) |
+| DeviceEvents | [DeviceEvents table](https://learn.microsoft.com/defender-xdr/advanced-hunting-deviceevents-table) |
+| AlertInfo | [AlertInfo table](https://learn.microsoft.com/defender-xdr/advanced-hunting-alertinfo-table) |
+| AlertEvidence | [AlertEvidence table](https://learn.microsoft.com/defender-xdr/advanced-hunting-alertevidence-table) |
+| Vulnerabilités | [DeviceTvmSoftwareVulnerabilities table](https://learn.microsoft.com/defender-xdr/advanced-hunting-devicetvmsoftwarevulnerabilities-table) |
+| Configuration assessment | [DeviceTvmSecureConfigurationAssessment table](https://learn.microsoft.com/defender-xdr/advanced-hunting-devicetvmsecureconfigurationassessment-table) |
+| RBAC | [Manage portal access using RBAC](https://learn.microsoft.com/defender-endpoint/rbac) |
+
+---
+
+## 10. À retenir pour ton rôle d'architecte Microsoft Security
+
+### 10.1 Architecture fonctionnelle
+
+```text
+                  MICROSOFT DEFENDER XDR
+                           |
+             +-------------+-------------+
+             |                           |
+             v                           v
+       DEVICE INVENTORY             INCIDENTS & ALERTS
+             |                           |
+             v                           v
+       DEVICE DETAILS              ALERT EVIDENCE
+             |                           |
+             +-------------+-------------+
+                           |
+                           v
+                    DEVICE TIMELINE
+                           |
+                           v
+                    ADVANCED HUNTING
+                         (KQL)
+                           |
+                           v
+                   INCIDENT QUALIFICATION
+                           |
+             +-------------+-------------+
+             |                           |
+             v                           v
+        INVESTIGATION                 CONTAINMENT
+             |                           |
+             v                           v
+       LIVE RESPONSE                ISOLATE DEVICE
+       INVESTIGATION                RESTRICT EXECUTION
+       PACKAGE                      ANTIVIRUS SCAN
+             |                           |
+             +-------------+-------------+
+                           |
+                           v
+                      ACTION CENTER
+                           |
+                           v
+                 REMEDIATION & VALIDATION
+                           |
+                           v
+                    RETOUR AU RUN
+```
+
+### 10.2 Les décisions d'architecture à prendre
+
+| Domaine | Décision d'architecture |
+|---|---|
+| Onboarding | Définir la couverture des endpoints |
+| Device Inventory | Définir les règles de classification et de qualité de l'inventaire |
+| Device value | Définir les critères de criticité métier |
+| RBAC | Définir les rôles et les périmètres d'accès |
+| Response actions | Définir les actions autorisées par profil |
+| High-value assets | Définir les restrictions et les validations spécifiques |
+| Advanced Hunting | Définir les requêtes et les cas d'usage SOC |
+| Action Center | Définir le suivi et la traçabilité des actions |
+| Incident Response | Définir les critères de confinement et de retour en production |
+| Reporting | Définir les KPI et les tableaux de bord |
+
+### 10.3 Indicateurs opérationnels à suivre
+
+| KPI | Objectif |
+|---|---|
+| Taux d'onboarding MDE | Mesurer la couverture des appareils |
+| Appareils sans activité récente | Identifier les pertes de télémétrie potentielles |
+| Nombre d'appareils à risque élevé | Suivre l'exposition |
+| Nombre d'incidents Endpoint | Mesurer le volume d'incidents |
+| MTTA | Mesurer le temps moyen de prise en compte |
+| MTTR | Mesurer le temps moyen de résolution |
+| Délai moyen d'isolation | Mesurer la rapidité du confinement |
+| Taux de réussite des actions | Contrôler l'efficacité opérationnelle |
+| Vulnérabilités critiques ouvertes | Mesurer le risque résiduel |
+| Taux de remédiation dans les SLA | Mesurer le respect des engagements |
+
+Les KPI doivent être définis avec une formule de calcul, une source de données, un propriétaire et une fréquence de mesure.
+
+### 10.4 BUILD – Ce que l'architecte doit concevoir
+
+- Définir l'architecture d'intégration MDE.
+- Définir les groupes d'appareils et la stratégie RBAC.
+- Définir la classification des actifs.
+- Définir les actions de réponse autorisées.
+- Définir les restrictions applicables aux actifs critiques.
+- Définir les procédures d'investigation et de confinement.
+- Préparer les requêtes KQL de référence.
+- Définir les tests fonctionnels et de sécurité.
+- Définir les KPI et les rapports.
+
+### 10.5 RUN – Ce que les équipes doivent exploiter
+
+- Surveiller les alertes et incidents.
+- Vérifier l'état des appareils.
+- Qualifier les alertes.
+- Réaliser les investigations KQL.
+- Déclencher les actions de réponse autorisées.
+- Contrôler les résultats dans Action Center.
+- Documenter les preuves et les décisions.
+- Suivre la remédiation.
+- Vérifier le retour à un état sécurisé.
+- Améliorer les règles et procédures après incident.
+
+---
+
+## 11. Plan de tests et validation
+
+| ID | Test | Résultat attendu | Preuve |
+|---|---|---|---|
+| MDE-RESP-001 | Rechercher un appareil onboardé | Appareil visible dans Device Inventory | Capture ou export |
+| MDE-RESP-002 | Consulter la fiche appareil | Informations disponibles | Fiche appareil |
+| MDE-RESP-003 | Consulter les alertes | Alertes associées visibles | Détail d'alerte |
+| MDE-RESP-004 | Examiner la Timeline | Événements consultables | Chronologie |
+| MDE-RESP-005 | Exécuter une requête DeviceInfo | Inventaire retourné | Résultat KQL |
+| MDE-RESP-006 | Exécuter une requête processus | Processus remontés | Résultat KQL |
+| MDE-RESP-007 | Exécuter une requête réseau | Connexions remontées | Résultat KQL |
+| MDE-RESP-008 | Collecter un Investigation Package | Collecte réalisée si appareil éligible | Action Center / package |
+| MDE-RESP-009 | Lancer une analyse antivirus | Action exécutée et résultat contrôlé | Action Center |
+| MDE-RESP-010 | Isoler un poste de test | Isolation confirmée | Statut de l'action |
+| MDE-RESP-011 | Vérifier les permissions RBAC | Actions limitées au rôle | Procès-verbal de test |
+| MDE-RESP-012 | Restaurer la connectivité | Appareil réintégré après validation | Statut et contrôle technique |
+
+**Règle de sécurité :** les tests d'isolation, de restriction d'exécution et de remédiation doivent être réalisés sur un appareil de test ou dans un périmètre explicitement approuvé.
+
+---
+
+## 12. Synthèse
+
+Microsoft Defender XDR et Microsoft Defender for Endpoint fournissent aux équipes SOC les capacités nécessaires pour identifier les appareils, analyser leurs alertes, reconstituer leur activité et déclencher des actions de réponse.
+
+La maîtrise opérationnelle repose sur cinq éléments :
+
+1. **Visibilité :** disposer d'un inventaire fiable et d'une télémétrie exploitable.
+2. **Investigation :** comprendre les alertes et reconstituer les événements.
+3. **Réponse :** choisir les actions de containment et de remédiation adaptées.
+4. **Traçabilité :** contrôler les actions dans Action Center et conserver les preuves.
+5. **Gouvernance :** maîtriser les licences, le RBAC, les actifs critiques et les procédures RUN.
+
+Le rôle de l'architecte Microsoft Security consiste à concevoir une chaîne de réponse cohérente, sécurisée, testée et exploitable par les équipes SOC et Endpoint Security.
+
+---
+
+## 13. Historique des modifications
+
+| Version | Date | Auteur | Modifications |
+|---|---|---|---|
+| 1.0 | 2026-11-08 | Microsoft Cybersecurity Architect | Création du rapport sur Device Inventory, alertes, Timeline et actions de réponse |
+| 1.1 | 2026-11-08 | Microsoft Cybersecurity Architect | Ajout des exemples KQL, des investigations processus/réseau/fichiers, des vulnérabilités, des tests et des recommandations BUILD/RUN |
+
+---
+
+## 14. Notes techniques et limites
+
+- Les requêtes KQL sont des exemples à adapter au tenant.
+- Les noms de colonnes doivent être vérifiés dans le schéma Advanced Hunting du portail.
+- Les événements disponibles dépendent de l'intégration des appareils et de la télémétrie remontée.
+- Les tables `DeviceTvmSoftwareVulnerabilities` et `DeviceTvmSecureConfigurationAssessment` doivent être interrogées dans le contexte approprié de Microsoft Defender XDR Advanced Hunting. Leur présence dans le schéma ne garantit pas que les données soient ingérées dans un workspace Microsoft Sentinel.
+- Les valeurs `ActionType` peuvent évoluer ; utiliser la référence de schéma intégrée.
+- Les actions de réponse dépendent des licences, des systèmes d'exploitation, du RBAC et des restrictions configurées.
+- Les exemples de noms d'appareils, d'utilisateurs et d'adresses IP sont fictifs.
+- Vérifier les documentations Microsoft Learn avant toute utilisation en production.
+
+**Fin du document – Microsoft Defender XDR / MDE – Gestion des appareils et réponse aux incidents Endpoint.**
