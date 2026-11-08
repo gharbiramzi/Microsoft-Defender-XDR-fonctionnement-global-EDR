@@ -70,14 +70,19 @@ Selon le sujet, chaque document doit couvrir :
 
 Les notes d’origine ne sont pas corrigées silencieusement. Les évolutions de produit, corrections et compléments doivent être explicitement identifiés et sourcés.
 
-## 6. Document déjà présent dans le dépôt
+## 6. Documentation transverse
+
+- [KQL, automatisation, RBAC, architecture et RUN](08-TRANSVERSE/01-KQL-AUTOMATISATION-RBAC-ARCHITECTURE-RUN.md)  
+  Cadre transverse pour le Threat Hunting, l'investigation, les automatisations PowerShell/Graph/REST/Logic Apps, la gouvernance RBAC, l'architecture Microsoft Security, les processus RUN, les KPI et les tests.
+
+## 7. Documents déjà présents dans le dépôt
 
 ### Endpoint Security — Intune et Defender
 
 - [Microsoft Intune et Microsoft Defender — Baselines et benchmarks de sécurité](SECURITY-BASELINES-INTUNE-DEFENDER-ASSESSMENT.md)  
   Distingue les baselines de configuration administrées dans Intune de la fonctionnalité Defender Security baselines assessment. Présente les benchmarks CIS/STIG, les prérequis, les limites, le workflow BUILD/RUN et les KPI.
 
-## 7. Références officielles
+## 8. Références officielles
 
 - [Microsoft Learn — Microsoft Defender](https://learn.microsoft.com/en-us/defender/)
 - [Microsoft Learn — Microsoft Defender for Endpoint](https://learn.microsoft.com/en-us/defender-endpoint/)
