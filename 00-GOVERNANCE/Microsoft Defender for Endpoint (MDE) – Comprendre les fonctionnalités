@@ -1,0 +1,563 @@
+# Microsoft Defender for Endpoint (MDE) – Comprendre les fonctionnalités
+
+**Domaine :** Microsoft Security – Endpoint Security  
+**Solution :** Microsoft Defender for Endpoint (MDE)  
+**Module étudié :** Vulnerability Management  
+**Portail :** Microsoft Defender XDR  
+**Approche :** Fonctionnelle – Technique – BUILD/RUN  
+**Type de document :** Support de formation et de compréhension technique
+
+---
+
+## 1. Objectif de la session
+
+Cette session a pour objectif de comprendre les fonctionnalités de Microsoft Defender for Endpoint, en se concentrant sur le module **Vulnerability Management** du portail Microsoft Defender.
+
+L'étude de chaque fonctionnalité repose sur trois axes :
+
+1. **Fonctionnel :** comprendre le rôle et l'objectif de la fonctionnalité.
+2. **Technique :** comprendre son fonctionnement, les données exploitées et les résultats produits.
+3. **BUILD/RUN :** comprendre comment la configurer, l'intégrer, la superviser et l'exploiter dans un environnement d'entreprise.
+
+L'objectif final est de savoir utiliser les informations produites par MDE pour identifier les risques, prioriser les actions de sécurité et piloter la remédiation des vulnérabilités.
+
+## 2. Vue d'ensemble du périmètre
+
+Les fonctionnalités étudiées sont les suivantes :
+
+| Fonctionnalité | Objectif principal |
+|---|---|
+| Dashboard | Visualiser le niveau d'exposition et les risques de sécurité. |
+| Recommendations | Identifier les actions de sécurisation recommandées. |
+| Remediation | Piloter et suivre la correction des vulnérabilités. |
+| Inventories | Recenser les logiciels et composants présents sur les appareils. |
+| Weaknesses | Identifier les vulnérabilités et les faiblesses de sécurité. |
+| Event timeline | Comprendre l'historique des événements liés aux appareils et aux investigations. |
+| Baselines Assessment | Évaluer la conformité aux référentiels de sécurité pris en charge. |
+| Partners and APIs | Intégrer MDE avec des outils tiers et automatiser les opérations. |
+
+> **Point important :** Vulnerability Management ne se limite pas à détecter des CVE. Il permet de passer de la connaissance de l'exposition à la priorisation des risques, puis au pilotage de la remédiation.
+
+Les fonctionnalités effectivement disponibles dépendent du niveau de souscription Defender Vulnerability Management, des licences, du système d'exploitation, des droits RBAC et de l'expérience du portail utilisée.
+
+## 3. Comprendre le rôle de chaque fonctionnalité
+
+### 3.1 Dashboard – Tableau de bord
+
+**Objectif fonctionnel**
+
+Le Dashboard fournit une vue synthétique de l'exposition de sécurité du parc informatique.
+
+Il permet aux équipes de sécurité de comprendre rapidement :
+
+- Le niveau global d'exposition.
+- Les vulnérabilités présentes sur le parc.
+- Les appareils présentant un niveau de risque élevé.
+- Les principales recommandations de sécurité.
+- Les tendances et évolutions de la posture de sécurité.
+
+**Informations à analyser**
+
+| Indicateur | Utilité |
+|---|---|
+| Exposure Score | Mesurer l'exposition globale du parc. |
+| Vulnerable devices | Identifier les appareils vulnérables. |
+| Security recommendations | Identifier les actions de sécurisation. |
+| Vulnerabilities | Suivre les vulnérabilités détectées. |
+| Risk level | Identifier les actifs présentant un risque important. |
+
+**Approche BUILD**
+
+- Vérifier la couverture des appareils intégrés à MDE.
+- Contrôler la remontée des informations de sécurité.
+- Définir les indicateurs de suivi.
+- Identifier les populations critiques.
+- Définir les objectifs de réduction de l'exposition.
+
+**Approche RUN**
+
+- Surveiller l'évolution du niveau d'exposition.
+- Identifier les nouveaux appareils vulnérables.
+- Suivre les recommandations prioritaires.
+- Produire des rapports périodiques.
+- Escalader les risques non corrigés.
+
+**Résultat attendu :** disposer d'une vision globale et exploitable de la posture de sécurité des endpoints.
+
+### 3.2 Recommendations – Recommandations de sécurité
+
+**Objectif fonctionnel**
+
+La fonctionnalité Recommendations identifie les actions permettant de réduire les risques de sécurité sur les appareils.
+
+Ces recommandations peuvent notamment concerner :
+
+- La mise à jour d'un logiciel.
+- La suppression d'une application obsolète.
+- La correction d'une configuration incorrecte.
+- Le durcissement du système.
+- La réduction de la surface d'attaque.
+
+**Informations à analyser**
+
+| Élément | Description |
+|---|---|
+| Recommendation name | Nom de la recommandation. |
+| Security impact | Impact potentiel sur la sécurité. |
+| Affected devices | Nombre d'appareils concernés. |
+| Severity | Niveau de priorité. |
+| Remediation guidance | Instructions de correction. |
+| Status | État de traitement, selon la vue disponible. |
+
+**Approche BUILD**
+
+1. Identifier les recommandations applicables.
+2. Analyser leur impact sur les applications métier.
+3. Vérifier les dépendances techniques.
+4. Définir les actions de correction.
+5. Tester les changements sur un groupe pilote.
+6. Planifier le déploiement progressif.
+
+**Approche RUN**
+
+- Suivre les recommandations ouvertes.
+- Identifier les corrections en retard.
+- Vérifier la disparition des vulnérabilités.
+- Documenter les exceptions.
+- Mesurer le taux de remédiation.
+
+**Résultat attendu :** transformer les constats de sécurité en actions correctives concrètes.
+
+### 3.3 Remediation – Gestion de la remédiation
+
+**Objectif fonctionnel**
+
+Remediation permet de piloter le traitement des recommandations de sécurité.
+
+L'objectif est de suivre les corrections depuis leur identification jusqu'à leur validation.
+
+**Cycle de remédiation**
+
+1. Identifier une recommandation.
+2. Analyser les appareils concernés.
+3. Créer ou demander une action de remédiation lorsque cette capacité est disponible.
+4. Affecter la responsabilité à l'équipe compétente.
+5. Définir une échéance.
+6. Effectuer la correction.
+7. Vérifier le résultat dans MDE.
+8. Clôturer le traitement ou documenter le risque résiduel.
+
+**Exemples d'actions**
+
+| Situation | Action possible |
+|---|---|
+| Logiciel vulnérable | Installer une version corrigée. |
+| Application obsolète | Mettre à niveau ou désinstaller. |
+| Configuration faible | Appliquer une configuration sécurisée. |
+| Vulnérabilité non corrigeable immédiatement | Mettre en place une mesure compensatoire. |
+| Risque accepté | Formaliser une dérogation et une date de réexamen. |
+
+**Point d'architecture important**
+
+Une demande de remédiation ne signifie pas nécessairement que MDE déploie automatiquement le correctif.
+
+Le déploiement peut nécessiter l'intervention d'Intune, Configuration Manager, d'un outil de gestion des correctifs ou d'une équipe IT.
+
+**Approche BUILD**
+
+- Définir les responsabilités Security / Endpoint / Workplace.
+- Définir les SLA de correction selon la criticité.
+- Définir les circuits de validation.
+- Intégrer le processus à l'outil ITSM.
+- Définir les règles de gestion des exceptions.
+
+**Approche RUN**
+
+- Suivre les demandes de remédiation.
+- Contrôler les échéances.
+- Vérifier la correction effective.
+- Relancer les équipes responsables.
+- Produire les indicateurs de conformité.
+
+**Résultat attendu :** disposer d'un processus de remédiation traçable et mesurable.
+
+### 3.4 Inventories – Inventaires
+
+**Objectif fonctionnel**
+
+Inventories permet de consulter les logiciels et composants détectés sur les appareils intégrés à MDE.
+
+Cette fonctionnalité aide les équipes à identifier les logiciels installés, leurs versions et leur exposition potentielle.
+
+**Informations recherchées**
+
+- Nom du logiciel.
+- Éditeur.
+- Version.
+- Nombre d'appareils concernés.
+- Appareils sur lesquels le logiciel est installé.
+- Vulnérabilités associées, lorsqu'elles sont disponibles.
+
+**Cas d'utilisation**
+
+Exemple : identifier tous les appareils qui utilisent une version vulnérable d'un navigateur.
+
+Démarche :
+
+1. Rechercher le logiciel dans l'inventaire.
+2. Identifier les versions concernées.
+3. Consulter les appareils impactés.
+4. Vérifier les vulnérabilités associées.
+5. Définir une stratégie de mise à jour.
+6. Vérifier la disparition de la version vulnérable.
+
+**Approche BUILD**
+
+- Vérifier la couverture de l'inventaire.
+- Définir les règles de gestion des logiciels.
+- Identifier les applications sensibles.
+- Comparer l'inventaire MDE avec la CMDB.
+
+**Approche RUN**
+
+- Surveiller les nouvelles applications.
+- Identifier les logiciels obsolètes.
+- Détecter les versions vulnérables.
+- Contrôler les applications non autorisées.
+- Suivre les mises à jour.
+
+**Résultat attendu :** disposer d'une vision exploitable des logiciels présents sur le parc.
+
+### 3.5 Weaknesses – Faiblesses de sécurité
+
+**Objectif fonctionnel**
+
+Weaknesses permet d'identifier les vulnérabilités et faiblesses de sécurité détectées dans l'environnement.
+
+Une vulnérabilité peut être associée à une référence CVE.
+
+**Informations à examiner**
+
+| Élément | Description |
+|---|---|
+| CVE | Identifiant de la vulnérabilité. |
+| CVSS | Score technique de gravité lorsqu'il est disponible. |
+| Severity | Niveau de gravité. |
+| Affected devices | Appareils concernés. |
+| Exploit availability | Informations disponibles sur l'existence d'un exploit. |
+| Remediation | Action de correction recommandée. |
+
+**Différence entre les notions**
+
+- **Vulnerability :** défaut exploitable ou susceptible d'affecter la sécurité d'un composant.
+- **Weakness :** faiblesse ou mauvaise configuration pouvant contribuer à une exposition.
+- **Recommendation :** action destinée à réduire ou supprimer cette exposition.
+
+**Exemple**
+
+Un logiciel installé sur 250 postes présente une vulnérabilité CVE.
+
+L'équipe sécurité doit :
+
+1. Identifier la CVE.
+2. Analyser sa gravité.
+3. Vérifier l'existence d'un exploit connu.
+4. Identifier les appareils concernés.
+5. Évaluer leur criticité métier.
+6. Définir la priorité de correction.
+7. Vérifier la remédiation.
+
+**Approche BUILD**
+
+- Définir les critères de priorisation.
+- Intégrer la criticité métier.
+- Définir les délais de correction.
+- Identifier les responsables des applications.
+
+**Approche RUN**
+
+- Suivre les nouvelles vulnérabilités.
+- Identifier les vulnérabilités critiques.
+- Surveiller les délais de correction.
+- Produire des indicateurs de risque résiduel.
+
+**Résultat attendu :** transformer les vulnérabilités techniques en risques de sécurité priorisés.
+
+### 3.6 Event timeline – Chronologie des événements
+
+**Objectif fonctionnel**
+
+La chronologie permet de comprendre les événements observés sur les appareils et de replacer une activité dans son contexte.
+
+Elle est utile pour les investigations de sécurité.
+
+**Exemples d'informations exploitables**
+
+- Activités de processus.
+- Événements de sécurité.
+- Activités réseau.
+- Création ou modification de fichiers.
+- Événements liés à une détection.
+- Activités suspectes observées sur l'appareil.
+
+**Cas d'utilisation SOC**
+
+Un analyste constate une activité PowerShell suspecte.
+
+Il peut :
+
+1. Consulter la chronologie de l'appareil.
+2. Identifier l'heure de l'activité.
+3. Examiner le processus parent.
+4. Analyser la commande exécutée.
+5. Rechercher les connexions réseau associées.
+6. Identifier les événements précédant et suivant la détection.
+7. Déterminer si l'activité est malveillante.
+
+**Approche BUILD**
+
+- Vérifier la remontée de télémétrie.
+- Définir les rôles d'investigation.
+- Préparer les procédures d'analyse.
+- Définir les besoins de conservation des données.
+
+**Approche RUN**
+
+- Examiner les événements liés aux alertes.
+- Corréler les activités.
+- Identifier les comportements suspects.
+- Conserver les preuves nécessaires.
+- Escalader les investigations complexes.
+
+**Point de vigilance :** la chronologie des événements d'un appareil ne doit pas être confondue avec l'historique des demandes de remédiation ou l'Action Center.
+
+**Résultat attendu :** comprendre le déroulement d'une activité suspecte et faciliter l'investigation.
+
+### 3.7 Baselines Assessment – Évaluation des référentiels de sécurité
+
+**Objectif fonctionnel**
+
+Cette fonctionnalité permet d'évaluer la configuration des appareils par rapport à des référentiels de sécurité pris en charge.
+
+L'objectif est d'identifier les écarts de configuration et les possibilités de durcissement.
+
+**Exemples de domaines à contrôler**
+
+- Configuration de sécurité Windows.
+- Paramètres de protection.
+- Configuration des fonctionnalités système.
+- Paramètres de durcissement.
+- Conformité aux recommandations prises en charge.
+
+**Approche BUILD**
+
+1. Définir les référentiels applicables.
+2. Identifier les populations concernées.
+3. Évaluer les écarts.
+4. Analyser les impacts métier.
+5. Définir les mesures correctives.
+6. Tester les configurations.
+7. Déployer progressivement.
+
+**Approche RUN**
+
+- Suivre les écarts de configuration.
+- Vérifier l'application des politiques.
+- Analyser les dérives.
+- Contrôler les exceptions.
+- Réévaluer régulièrement la conformité.
+
+**Point de vigilance :** vérifier les référentiels réellement disponibles dans le tenant et ne pas supposer que tous les benchmarks CIS ou Microsoft Security Baselines sont automatiquement évalués par cette vue.
+
+**Résultat attendu :** améliorer la posture de configuration et réduire les écarts de sécurité.
+
+### 3.8 Partners and APIs – Intégrations et interfaces API
+
+**Objectif fonctionnel**
+
+Cette fonctionnalité concerne l'intégration de MDE avec des solutions tierces et l'exploitation de ses données par des interfaces de programmation.
+
+L'objectif est d'automatiser les opérations de sécurité et de faciliter l'intégration dans l'écosystème de l'entreprise.
+
+**Exemples d'intégrations**
+
+- Outils ITSM.
+- Solutions SIEM.
+- Plateformes SOAR.
+- Outils de gestion des vulnérabilités.
+- Outils de reporting.
+- Applications internes.
+
+**Exemples de technologies**
+
+| Technologie | Utilisation |
+|---|---|
+| Microsoft Graph Security API | Accéder aux ressources de sécurité prises en charge. |
+| Defender APIs | Automatiser certaines opérations MDE selon les API disponibles. |
+| PowerShell | Industrialiser les opérations d'administration et de reporting. |
+| REST API | Intégrer MDE dans des applications et workflows. |
+| Power BI | Construire des tableaux de bord de suivi. |
+| ITSM / SOAR | Automatiser le traitement et le suivi des actions. |
+
+**Exemple de workflow**
+
+1. MDE détecte une vulnérabilité.
+2. Une intégration récupère les informations disponibles.
+3. Un ticket est créé dans l'outil ITSM.
+4. L'équipe Endpoint reçoit la demande.
+5. Le correctif est déployé.
+6. Les informations de correction sont remontées.
+7. Le ticket est mis à jour.
+8. Le résultat est vérifié dans MDE.
+
+**Approche BUILD**
+
+- Identifier les API nécessaires.
+- Définir les permissions minimales.
+- Préparer l'identité applicative.
+- Sécuriser les certificats et secrets.
+- Configurer les connecteurs.
+- Gérer la pagination et les limitations d'appels.
+- Tester les erreurs et les reprises.
+
+**Approche RUN**
+
+- Superviser les intégrations.
+- Contrôler les erreurs API.
+- Suivre les quotas et limitations.
+- Contrôler les permissions applicatives.
+- Superviser les workflows.
+- Maintenir les scripts et connecteurs.
+
+**Résultat attendu :** industrialiser le traitement des vulnérabilités et améliorer la traçabilité.
+
+## 4. Architecture fonctionnelle globale
+
+### Lecture de l'architecture
+
+1. Les endpoints intégrés à MDE remontent des informations.
+2. MDE exploite les données disponibles pour identifier les vulnérabilités et les faiblesses.
+3. Le Dashboard fournit une vision globale de l'exposition.
+4. Recommendations identifie les actions de sécurisation.
+5. Inventories fournit la visibilité sur les logiciels et composants.
+6. Weaknesses présente les vulnérabilités et faiblesses identifiées.
+7. Les équipes priorisent les risques.
+8. Remediation permet de piloter les actions correctives.
+9. Les outils de gestion des endpoints réalisent les déploiements nécessaires.
+10. La correction est vérifiée et les informations sont exploitées pour le reporting.
+
+## 5. Points d'architecture à retenir
+
+### 5.1 Couverture des appareils
+
+La qualité des résultats dépend directement de la couverture MDE.
+
+Contrôles à effectuer :
+
+- Nombre d'appareils intégrés.
+- État d'intégration.
+- État du capteur.
+- Dernière remontée d'informations.
+- Versions des systèmes d'exploitation.
+- Appareils absents ou non supervisés.
+
+### 5.2 Licences
+
+Les capacités de Vulnerability Management dépendent de la souscription utilisée.
+
+Il faut vérifier :
+
+- Les droits associés à MDE Plan 1 ou Plan 2.
+- Les fonctionnalités incluses dans Defender Vulnerability Management.
+- Les éventuels add-ons ou abonnements autonomes.
+- Les droits applicables aux serveurs et environnements virtuels.
+
+Ne pas supposer que toutes les fonctionnalités avancées sont incluses dans chaque licence MDE.
+
+### 5.3 RBAC et moindre privilège
+
+Les permissions doivent être adaptées aux responsabilités des équipes.
+
+| Profil | Responsabilité |
+|---|---|
+| SOC Analyst | Consultation et analyse des alertes. |
+| Vulnerability Management | Analyse et priorisation des vulnérabilités. |
+| Endpoint Administrator | Déploiement des correctifs et configurations. |
+| Security Administrator | Gouvernance et contrôle des politiques. |
+| Auditor | Consultation et vérification. |
+
+Les droits doivent être limités aux appareils et opérations nécessaires.
+
+### 5.4 Gouvernance de la remédiation
+
+La remédiation nécessite une coordination entre plusieurs équipes :
+
+- SOC : détection et qualification.
+- Vulnerability Management : priorisation.
+- Endpoint / Workplace : correction technique.
+- Application Owner : validation applicative.
+- ITSM : suivi des tickets.
+- RSSI : arbitrage des risques et exceptions.
+
+### 5.5 Supervision et indicateurs
+
+Indicateurs recommandés :
+
+| KPI | Objectif |
+|---|---|
+| Exposure Score | Suivre l'évolution de l'exposition. |
+| Nombre de vulnérabilités critiques | Identifier les risques majeurs. |
+| Nombre d'appareils vulnérables | Mesurer l'étendue du problème. |
+| Taux de remédiation | Mesurer les corrections réalisées. |
+| Délai moyen de correction | Mesurer l'efficacité du traitement. |
+| Recommandations en retard | Identifier les actions non traitées. |
+| Appareils non supervisés | Mesurer les angles morts. |
+| Exceptions de sécurité | Suivre les risques acceptés. |
+
+## 6. Synthèse
+
+Microsoft Defender Vulnerability Management constitue un outil de visibilité et de pilotage de l'exposition de sécurité des endpoints.
+
+Ses principales contributions sont :
+
+- Identifier les vulnérabilités.
+- Recenser les logiciels et composants.
+- Évaluer les faiblesses de sécurité.
+- Fournir des recommandations.
+- Prioriser les risques.
+- Piloter les actions de remédiation.
+- Suivre les résultats.
+- Faciliter l'intégration avec les outils de sécurité et de gestion du parc.
+
+**Vision architecturale :**
+
+La valeur de la solution ne réside pas uniquement dans la détection des vulnérabilités. Elle réside dans sa capacité à alimenter un processus complet de gestion du risque, depuis l'identification jusqu'à la correction et à la validation.
+
+## 7. Points à approfondir
+
+Les sujets suivants pourront faire l'objet de sessions techniques distinctes :
+
+1. Configuration et exploitation du Dashboard.
+2. Analyse détaillée des Security Recommendations.
+3. Gestion des demandes de Remediation.
+4. Exploitation de Software Inventory.
+5. Analyse des CVE et Weaknesses.
+6. Investigation avec Event Timeline.
+7. Évaluation des Security Baselines.
+8. Intégration avec Microsoft Graph et les API Defender.
+9. Automatisation PowerShell et reporting Power BI.
+10. Construction d'un processus de Vulnerability Management avec ITSM.
+
+## 8. Références documentaires
+
+- [Microsoft Defender Vulnerability Management](https://learn.microsoft.com/en-us/defender-vulnerability-management/defender-vulnerability-management)
+- [Microsoft Defender Vulnerability Management overview](https://learn.microsoft.com/en-us/defender-vulnerability-management/overview)
+- [Microsoft Defender for Endpoint documentation](https://learn.microsoft.com/en-us/defender-endpoint/)
+- [Microsoft Graph Security API](https://learn.microsoft.com/en-us/graph/api/resources/security-api-overview)
+- [Microsoft Licensing Terms](https://www.microsoft.com/licensing/terms/)
+
+**Note documentaire :** les noms des menus, leur emplacement et les capacités disponibles doivent être vérifiés dans le tenant Microsoft Defender utilisé. Les détails propres à certaines vues, notamment Baselines Assessment et Partners and APIs, restent à confirmer à partir de la documentation officielle correspondant à l'offre souscrite.
+
+---
+
+**Fin du rapport – Microsoft Defender for Endpoint (MDE) : Comprendre les fonctionnalités**
