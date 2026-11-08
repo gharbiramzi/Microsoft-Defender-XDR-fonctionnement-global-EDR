@@ -1,0 +1,88 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="z1IgLojohtcXcTwzeo7P">
+    <mxGraphModel dx="1911" dy="1015" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1050" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#17365D;" value="Microsoft Defender XDR — Gestion des appareils et réponse Endpoint (MDE)" vertex="1">
+          <mxGeometry height="42" width="1400" x="40" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontColor=#475569;" value="Device Inventory : identifier • analyser • qualifier • contenir • investiguer • restaurer" vertex="1">
+          <mxGeometry height="28" width="1300" x="40" y="68" as="geometry" />
+        </mxCell>
+        <mxCell id="flowTitle" parent="1" style="swimlane;startSize=30;html=1;rounded=1;fillColor=#F5F7FA;strokeColor=#AAB7C4;fontStyle=1;fontSize=14;" value="CYCLE DE RÉPONSE SUR UN ENDPOINT" vertex="1">
+          <mxGeometry height="260" width="1420" x="40" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" parent="flowTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=15;fontStyle=1;" value="1. IDENTIFIER&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Device Inventory&lt;br&gt;Nom, OS, utilisateur&lt;br&gt;Santé et niveau de risque&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="205" x="22" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" parent="flowTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=15;fontStyle=1;" value="2. ANALYSER&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Incidents &amp; alerts&lt;br&gt;Timeline / activités&lt;br&gt;Indicateurs observés&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="205" x="258" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" parent="flowTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=15;fontStyle=1;" value="3. QUALIFIER&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Incident associé&lt;br&gt;Impact et périmètre&lt;br&gt;Priorité / criticité&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="205" x="494" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" parent="flowTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;fontSize=15;fontStyle=1;" value="4. CONTENIR&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Isoler l’appareil&lt;br&gt;Restreindre l’exécution&lt;br&gt;Stopper / mettre en quarantaine&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="205" x="730" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" parent="flowTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=15;fontStyle=1;" value="5. INVESTIGUER&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Collecter les preuves&lt;br&gt;Live response&lt;br&gt;Analyser et remédier&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="205" x="966" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s6" parent="flowTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=15;fontStyle=1;" value="6. VALIDER&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Contrôler l’état sécurisé&lt;br&gt;Vérifier les alertes&lt;br&gt;Lever l’isolement si autorisé&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="195" x="1202" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" edge="1" parent="flowTitle" source="s1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#526D82;strokeWidth=2;endArrow=block;labelBackgroundColor=default;defaultLabelBackgroundColor=page;" target="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" edge="1" parent="flowTitle" source="s2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#526D82;strokeWidth=2;endArrow=block;labelBackgroundColor=default;defaultLabelBackgroundColor=page;" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" edge="1" parent="flowTitle" source="s3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#526D82;strokeWidth=2;endArrow=block;labelBackgroundColor=default;defaultLabelBackgroundColor=page;" target="s4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" edge="1" parent="flowTitle" source="s4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#526D82;strokeWidth=2;endArrow=block;labelBackgroundColor=default;defaultLabelBackgroundColor=page;" target="s5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" edge="1" parent="flowTitle" source="s5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#526D82;strokeWidth=2;endArrow=block;labelBackgroundColor=default;defaultLabelBackgroundColor=page;" target="s6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="detailTitle" parent="1" style="swimlane;startSize=30;html=1;rounded=1;fillColor=#F5F7FA;strokeColor=#AAB7C4;fontStyle=1;fontSize=14;" value="FONCTIONS DU PORTAIL ET ACTIONS ASSOCIÉES" vertex="1">
+          <mxGeometry height="360" width="1420" x="40" y="405" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" parent="detailTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=15;fontStyle=1;align=left;spacingLeft=14;" value="APPAREIL&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Fiche appareil&lt;br&gt;Inventaire et propriétés&lt;br&gt;Exposition / niveau de risque&lt;br&gt;État de l’onboarding&lt;/font&gt;" vertex="1">
+          <mxGeometry height="125" width="320" x="25" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" parent="detailTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=15;fontStyle=1;align=left;spacingLeft=14;" value="ACTIVITÉ ET ALERTES&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Incidents and alerts : alertes liées&lt;br&gt;Timeline : événements et activités&lt;br&gt;Corrélation et contexte de l’incident&lt;/font&gt;" vertex="1">
+          <mxGeometry height="125" width="320" x="375" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" parent="detailTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;fontSize=15;fontStyle=1;align=left;spacingLeft=14;" value="ACTIONS DE SÉCURITÉ&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Containment : isoler l’appareil&lt;br&gt;Antivirus : lancer une analyse&lt;br&gt;Quarantaine / arrêt de processus&lt;br&gt;Restriction d’application&lt;/font&gt;" vertex="1">
+          <mxGeometry height="125" width="320" x="725" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" parent="detailTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=15;fontStyle=1;align=left;spacingLeft=14;" value="INVESTIGATION ET GESTION&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Collecte du package d’investigation&lt;br&gt;Live response (si disponible)&lt;br&gt;Tags / classification de l’actif&lt;br&gt;Exclusions et demande d’assistance&lt;/font&gt;" vertex="1">
+          <mxGeometry height="125" width="320" x="1075" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="action" parent="detailTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=15;fontStyle=1;" value="ACTION CENTER&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Centralise le suivi des actions de remédiation et de réponse : état, résultat, échec ou action en attente.&lt;/font&gt;" vertex="1">
+          <mxGeometry height="95" width="660" x="25" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="guard" parent="detailTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=15;fontStyle=1;" value="CONTRÔLES AVANT ACTION&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Vérifier RBAC / rôle, licence, OS et état de l’appareil. Certaines actions ne sont pas disponibles partout. Appliquer une validation SOC et une procédure de retour arrière pour les actions à impact.&lt;/font&gt;" vertex="1">
+          <mxGeometry height="95" width="670" x="725" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="runTitle" parent="1" style="swimlane;startSize=30;html=1;rounded=1;fillColor=#F5F7FA;strokeColor=#AAB7C4;fontStyle=1;fontSize=14;" value="RÉPARTITION SOC / ENDPOINT OPERATIONS" vertex="1">
+          <mxGeometry height="155" width="1420" x="40" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="soc" parent="runTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;fontSize=14;fontStyle=1;" value="SOC / SecOps&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Détecter • qualifier • décider • contenir&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="420" x="30" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="endpoint" parent="runTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=14;fontStyle=1;" value="Endpoint Operations / IT&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Corriger • reconstruire si nécessaire • valider la conformité&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="420" x="500" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="govern" parent="runTitle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=14;fontStyle=1;" value="GOUVERNANCE RUN&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;SLA • journalisation • preuve • clôture • retour d’expérience&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="420" x="970" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="foot" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#64748B;" value="Vue fonctionnelle simplifiée. Les actions exactes et leur disponibilité dépendent notamment des licences, du système d’exploitation, du statut de l’appareil et des permissions RBAC." vertex="1">
+          <mxGeometry height="35" width="1400" x="40" y="970" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
