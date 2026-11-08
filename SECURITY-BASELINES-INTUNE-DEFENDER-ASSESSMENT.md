@@ -14,6 +14,41 @@ Ce document explique les deux consoles présentées dans la capture de référen
 
 Ces fonctions sont complémentaires, mais ne remplissent pas le même rôle. **Intune configure et déploie ; Security baselines assessment évalue et mesure.**
 
+## 1.1 Clarification : les deux Security Baselines Intune et l'assessment Defender
+
+Il faut distinguer **deux profils de configuration administrés depuis Intune** et **une fonctionnalité d'évaluation disponible dans le portail Microsoft Defender**.
+
+### Les deux baselines de configuration dans Intune
+
+1. **Microsoft Defender for Endpoint security baseline** : baseline dédiée aux paramètres de sécurité recommandés pour renforcer les protections Microsoft Defender for Endpoint sur les terminaux.
+2. **Security Baseline for Windows 10 and later** : baseline Windows regroupant des paramètres de sécurité recommandés pour durcir le système d'exploitation et ses composants.
+
+Ces deux profils sont administrés et déployés depuis **Microsoft Intune**. La baseline Microsoft Defender for Endpoint n'est donc pas une baseline à créer ou à déployer directement depuis le portail Microsoft Defender.
+
+Chemin d'accès commun dans Intune :
+
+`https://intune.microsoft.com` → `Endpoint security` → `Security baselines`
+
+Les profils disponibles et leurs paramètres exacts dépendent des versions proposées dans le tenant. Avant déploiement, comparer les paramètres des deux baselines et identifier les chevauchements avec les politiques Endpoint security et les autres mécanismes de configuration (GPO, Configuration Manager, scripts).
+
+### L'assessment dans le portail Microsoft Defender
+
+**Defender Vulnerability Management — Security baselines assessment** est une fonctionnalité distincte. Elle permet d'évaluer la configuration des appareils par rapport à des benchmarks pris en charge, notamment CIS et DISA STIG selon le périmètre documenté.
+
+Chemin présenté dans la capture :
+
+`Microsoft Defender portal` → `Endpoints` → `Vulnerability management` → `Baselines assessment`
+
+Cette fonctionnalité ne doit pas être confondue avec les deux profils Intune : elle mesure une posture par rapport à un benchmark et ne remplace pas le mécanisme de déploiement des paramètres.
+
+| Élément | Type | Portail | Fonction |
+|---|---|---|---|
+| Microsoft Defender for Endpoint security baseline | Baseline de configuration | Intune | Renforcer les paramètres de sécurité Defender for Endpoint. |
+| Security Baseline for Windows 10 and later | Baseline de configuration | Intune | Durcir Windows et ses composants. |
+| Security baselines assessment | Évaluation de conformité | Microsoft Defender | Évaluer les appareils par rapport aux benchmarks pris en charge. |
+
+**Règle de lecture :** les deux premières lignes servent à configurer les terminaux ; la troisième sert à évaluer leur conformité à un référentiel. Ne pas assimiler le déploiement d'une baseline Intune à une preuve automatique de conformité CIS/STIG.
+
 ## 2. Lecture de la capture
 
 ### 2.1 Microsoft Intune Admin Center
