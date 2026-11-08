@@ -1,0 +1,1 @@
+# Microsoft-Defender-XDR-fonctionnement-global-EDR
